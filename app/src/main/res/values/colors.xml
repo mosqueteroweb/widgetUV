@@ -1,0 +1,10 @@
+<resources>
+    <color name="uv_low">#43A047</color>
+    <color name="uv_moderate">#FDD835</color>
+    <color name="uv_high">#FB8C00</color>
+    <color name="uv_very_high">#E53935</color>
+    <color name="uv_extreme">#8E24AA</color>
+    
+    <color name="card_bg_dark">#1C1B1F</color>
+    <color name="card_bg_light">#F5F5F5</color>
+</resources>

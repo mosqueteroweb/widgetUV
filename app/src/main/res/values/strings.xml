@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">Widget UV</string>
+    <string name="widget_name">Índice UV (1x1)</string>
+    <string name="widget_description">Muestra el índice ultravioleta actual y pico diario en 1x1.</string>
+    <string name="uv_low">Bajo</string>
+    <string name="uv_moderate">Moderado</string>
+    <string name="uv_high">Alto</string>
+    <string name="uv_very_high">Muy Alto</string>
+    <string name="uv_extreme">Extremo</string>
+</resources>
