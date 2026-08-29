@@ -1,0 +1,12 @@
+Widget UV es una aplicación ligera, de código abierto y sin publicidad diseñada para monitorizar la radiación solar y el Índice Ultravioleta (UV) en tiempo real desde la pantalla de inicio de tu dispositivo Android.
+
+Características principales:
+• 3 Tamaños de Widgets interactivos para el escritorio:
+  - 1x1 Compacto: Índice actual con código de colores de la OMS y pico solar diario.
+  - 2x1 Horizontal: Valor actual y evolución horaria de las próximas horas.
+  - 2x2 Completo: Provincia actual, histograma de radiación solar y consejos de protección.
+• Máximo ahorro de batería: El GPS solo se activa automáticamente a las 7:00 AM y 2:00 PM para descargar la curva solar del día, actualizando el widget en memoria local sin consumir batería ni datos durante el resto de la jornada.
+• Detección automática de provincia mediante geolocalización inversa en tiempo real.
+• Curva solar horaria de 7:00 a 22:00 centrada automáticamente en la hora actual.
+• Carrusel de recomendaciones de salud: fotoprotección personalizada, factor solar (FPS), síntesis de Vitamina D y protección ocular UV400.
+• 100% Privado y de Código Abierto: Sin rastreadores, sin analíticas y sin publicidad. Datos meteorológicos provistos por la API abierta de Open-Meteo.

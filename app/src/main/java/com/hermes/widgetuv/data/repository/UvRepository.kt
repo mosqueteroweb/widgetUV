@@ -17,20 +17,15 @@ class UvRepository(private val context: Context) {
     private val prefs = context.getSharedPreferences("widget_uv_forecast_cache", Context.MODE_PRIVATE)
     private val gson = Gson()
 
-    /**
-     * Reads current UV:
-     * - Evaluates local hourly cached curve if available for today.
-     * - Does NOT activate GPS/Network unless explicitly forcing sync or scheduled slot (7am / 2pm).
-     */
     suspend fun getCurrentUvInfo(forceGpsSync: Boolean = false, slotTag: String = "MANUAL"): Pair<UvCurrentInfo, List<UvHourlyPoint>> {
         val todayStr = LocalDate.now().toString()
-        val cachedJson = prefs.getString("day_forecast", null)
+        val cachedJson = prefs.getString("day_forecast_v2", null)
         var forecast: CachedDayForecast? = null
 
         if (cachedJson != null) {
             try {
                 val parsed = gson.fromJson(cachedJson, CachedDayForecast::class.java)
-                if (parsed.dateIso == todayStr) {
+                if (parsed.dateIso == todayStr && parsed.hourly24Uv.size == 24) {
                     forecast = parsed
                 }
             } catch (e: Exception) {
@@ -38,7 +33,7 @@ class UvRepository(private val context: Context) {
             }
         }
 
-        // If no cache for today or force sync requested (7am, 2pm or manual button), query GPS & API
+        // If no cache for today or force sync requested, query GPS & API
         if (forecast == null || forceGpsSync) {
             val syncResult = syncWithGpsAndApi(slotTag)
             if (syncResult != null) {
@@ -47,9 +42,10 @@ class UvRepository(private val context: Context) {
         }
 
         val currentHour = LocalDateTime.now().hour
-        if (forecast != null && forecast.hourlyUv.isNotEmpty()) {
-            val currentUv = forecast.hourlyUv.getOrElse(currentHour) { 0.0 }
-            val isDay = currentUv > 0.0 || (currentHour in 7..20)
+        if (forecast != null && forecast.hourly24Uv.size == 24) {
+            // Direct index matching: currentHour (0..23) corresponds exactly to hourly24Uv[currentHour]
+            val currentUv = forecast.hourly24Uv.getOrElse(currentHour) { 0.0 }
+            val isDay = currentUv > 0.0 || (currentHour in 7..21)
 
             val info = UvCurrentInfo(
                 currentUv = currentUv,
@@ -61,16 +57,21 @@ class UvRepository(private val context: Context) {
                 lastUpdated = forecast.lastSyncTimestamp
             )
 
-            val hourlyList = forecast.hourlyUv.mapIndexed { index, uv ->
-                val label = forecast.hourlyLabels.getOrElse(index) { String.format(Locale.US, "%02d:00", index) }
-                UvHourlyPoint(
-                    timeIso = "${forecast.dateIso}T$label",
-                    hourLabel = label,
-                    uv = uv
+            // UI Curve: filter 7:00 AM (hour 7) to 22:00 PM (hour 22)
+            val displayList = mutableListOf<UvHourlyPoint>()
+            for (hour in 7..22) {
+                val uv = forecast.hourly24Uv.getOrElse(hour) { 0.0 }
+                val label = forecast.hourly24Labels.getOrElse(hour) { String.format(Locale.US, "%02d:00", hour) }
+                displayList.add(
+                    UvHourlyPoint(
+                        timeIso = "${forecast.dateIso}T$label",
+                        hourLabel = label,
+                        uv = uv
+                    )
                 )
             }
 
-            return Pair(info, hourlyList)
+            return Pair(info, displayList)
         }
 
         // Fallback if offline and no cache
@@ -84,31 +85,27 @@ class UvRepository(private val context: Context) {
         return Pair(fallback, emptyList())
     }
 
-    /**
-     * Executes the GPS reading & Open-Meteo API query.
-     * Only called at 7:00 AM, 2:00 PM, or on manual refresh.
-     */
     suspend fun syncWithGpsAndApi(slotTag: String): CachedDayForecast? {
         val location = locationHelper.getCurrentLocation()
         val result = apiClient.fetchUvData(location.latitude, location.longitude, location.label)
 
         if (result.isSuccess) {
-            val (info, hourly) = result.getOrThrow()
+            val parsed = result.getOrThrow()
             val todayStr = LocalDate.now().toString()
 
             val cached = CachedDayForecast(
                 dateIso = todayStr,
-                hourlyUv = hourly.map { it.uv },
-                hourlyLabels = hourly.map { it.hourLabel },
-                maxTodayUv = info.maxTodayUv,
-                maxTime = info.maxTime,
+                hourly24Uv = parsed.hourly24Uv,
+                hourly24Labels = parsed.hourly24Labels,
+                maxTodayUv = parsed.currentInfo.maxTodayUv,
+                maxTime = parsed.currentInfo.maxTime,
                 locationLabel = location.label,
                 lastSyncTimestamp = System.currentTimeMillis(),
                 syncSlot = slotTag
             )
 
             prefs.edit()
-                .putString("day_forecast", gson.toJson(cached))
+                .putString("day_forecast_v2", gson.toJson(cached))
                 .apply()
 
             return cached

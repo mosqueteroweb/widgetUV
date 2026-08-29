@@ -1,0 +1,12 @@
+Widget UV is a lightweight, open-source, ad-free Android app designed to monitor solar radiation and the UV Index in real time directly from your home screen.
+
+Key Features:
+• 3 Interactive Widget sizes:
+  - 1x1 Compact: Current UV value with WHO risk color scale and daily solar peak.
+  - 2x1 Horizontal: Current level and next hours forecast.
+  - 2x2 Full: Current province, solar histogram, and health advice.
+• Smart battery saving: GPS only syncs automatically at 7:00 AM and 2:00 PM to fetch the full 24h solar curve, updating locally with zero battery drain.
+• Automatic province detection via real-time reverse geocoding.
+• Hourly UV curve from 7:00 to 22:00 centered on the current hour.
+• Health recommendations: personalized sun protection, SPF advice, Vitamin D synthesis guidelines, and UV400 eye care.
+• 100% Private and Open Source: No ads, no trackers, powered by the open Open-Meteo API.

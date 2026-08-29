@@ -1,7 +1,11 @@
 <resources>
     <string name="app_name">Widget UV</string>
     <string name="widget_name">Índice UV (1x1)</string>
+    <string name="widget_2x1_name">Índice UV (2x1 Horizontal)</string>
+    <string name="widget_2x2_name">Índice UV (2x2 Completo)</string>
     <string name="widget_description">Muestra el índice ultravioleta actual y pico diario en 1x1.</string>
+    <string name="widget_2x1_description">Widget horizontal con valor actual, próximas horas y pico diario.</string>
+    <string name="widget_2x2_description">Widget completo con provincia, gráfica horaria y recomendación de fotoprotección.</string>
     <string name="uv_low">Bajo</string>
     <string name="uv_moderate">Moderado</string>
     <string name="uv_high">Alto</string>

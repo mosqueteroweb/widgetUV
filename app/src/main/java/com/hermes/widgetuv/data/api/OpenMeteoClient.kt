@@ -1,6 +1,7 @@
 package com.hermes.widgetuv.data.api
 
 import com.google.gson.Gson
+import com.hermes.widgetuv.data.model.OpenMeteoParsedResult
 import com.hermes.widgetuv.data.model.OpenMeteoResponse
 import com.hermes.widgetuv.data.model.UvCurrentInfo
 import com.hermes.widgetuv.data.model.UvHourlyPoint
@@ -17,7 +18,7 @@ import java.util.Locale
 class OpenMeteoClient {
     private val gson = Gson()
 
-    suspend fun fetchUvData(lat: Double, lon: Double, locationLabel: String = "Mi Ubicación"): Result<Pair<UvCurrentInfo, List<UvHourlyPoint>>> =
+    suspend fun fetchUvData(lat: Double, lon: Double, locationLabel: String = "Mi Ubicación"): Result<OpenMeteoParsedResult> =
         withContext(Dispatchers.IO) {
             try {
                 val urlString = String.format(
@@ -53,7 +54,7 @@ class OpenMeteoClient {
     private fun parseUvInfo(
         response: OpenMeteoResponse,
         locationLabel: String
-    ): Pair<UvCurrentInfo, List<UvHourlyPoint>> {
+    ): OpenMeteoParsedResult {
         val now = LocalDateTime.now()
         val currentHour = now.hour
 
@@ -61,35 +62,48 @@ class OpenMeteoClient {
         val hourlyUv = response.hourly.uv_index
         val hourlyIsDay = response.hourly.is_day
 
-        // Current UV at current hour
-        val currentUv = if (currentHour in hourlyUv.indices) hourlyUv[currentHour] else 0.0
+        val hourly24Uv = mutableListOf<Double>()
+        val hourly24Labels = mutableListOf<String>()
+        val displayList = mutableListOf<UvHourlyPoint>()
+        val formatter = DateTimeFormatter.ofPattern("HH:mm")
+
+        var maxVal = -1.0
+        var maxHour = 14
+
+        // Populate full 24h day arrays
+        for (i in 0 until 24) {
+            val uv = if (i in hourlyUv.indices) hourlyUv[i] else 0.0
+            val timeStr = if (i in hourlyTimes.indices) hourlyTimes[i] else String.format(Locale.US, "%02d:00", i)
+            val label = try {
+                val dt = LocalDateTime.parse(timeStr)
+                dt.format(formatter)
+            } catch (e: Exception) {
+                String.format(Locale.US, "%02d:00", i)
+            }
+
+            hourly24Uv.add(uv)
+            hourly24Labels.add(label)
+
+            if (uv > maxVal) {
+                maxVal = uv
+                maxHour = i
+            }
+
+            // Filter for UI display: 7:00 to 22:00
+            if (i in 7..22) {
+                displayList.add(UvHourlyPoint(timeStr, label, uv))
+            }
+        }
+
+        val currentUv = hourly24Uv.getOrElse(currentHour) { 0.0 }
+        val maxTodayUv = if (maxVal >= 0.0) maxVal else (response.daily.uv_index_max.firstOrNull() ?: currentUv)
+        val maxHourStr = String.format(Locale.getDefault(), "%02d:00", maxHour)
+
         val isDay = if (hourlyIsDay != null && currentHour in hourlyIsDay.indices) {
             hourlyIsDay[currentHour] == 1
         } else {
-            currentUv > 0.0
+            currentUv > 0.0 || (currentHour in 7..21)
         }
-
-        // Daily Max UV and time
-        val maxTodayUv = response.daily.uv_index_max.firstOrNull() ?: currentUv
-        
-        // Find hour of maximum UV
-        var maxIndex = 0
-        var maxVal = -1.0
-        for (i in hourlyUv.indices) {
-            if (hourlyUv[i] > maxVal) {
-                maxVal = hourlyUv[i]
-                maxIndex = i
-            }
-        }
-
-        val maxHourStr = if (maxIndex in hourlyTimes.indices) {
-            try {
-                val parsed = LocalDateTime.parse(hourlyTimes[maxIndex])
-                String.format(Locale.getDefault(), "%02d:00", parsed.hour)
-            } catch (e: Exception) {
-                String.format(Locale.getDefault(), "%02d:00", maxIndex)
-            }
-        } else "14:00"
 
         val currentInfo = UvCurrentInfo(
             currentUv = currentUv,
@@ -99,19 +113,11 @@ class OpenMeteoClient {
             locationName = locationLabel
         )
 
-        val hourlyList = mutableListOf<UvHourlyPoint>()
-        val formatter = DateTimeFormatter.ofPattern("HH:mm")
-        for (i in hourlyTimes.indices) {
-            val uv = hourlyUv.getOrElse(i) { 0.0 }
-            val label = try {
-                val dt = LocalDateTime.parse(hourlyTimes[i])
-                dt.format(formatter)
-            } catch (e: Exception) {
-                "$i:00"
-            }
-            hourlyList.add(UvHourlyPoint(hourlyTimes[i], label, uv))
-        }
-
-        return Pair(currentInfo, hourlyList)
+        return OpenMeteoParsedResult(
+            currentInfo = currentInfo,
+            hourly24Uv = hourly24Uv,
+            hourly24Labels = hourly24Labels,
+            displayList = displayList
+        )
     }
 }

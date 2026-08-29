@@ -33,13 +33,13 @@ data class UvHourlyPoint(
 
 data class CachedDayForecast(
     val dateIso: String,
-    val hourlyUv: List<Double>,
-    val hourlyLabels: List<String>,
+    val hourly24Uv: List<Double>,
+    val hourly24Labels: List<String>,
     val maxTodayUv: Double,
     val maxTime: String,
     val locationLabel: String,
     val lastSyncTimestamp: Long,
-    val syncSlot: String // "7AM", "2PM", "MANUAL"
+    val syncSlot: String
 )
 
 data class UvCurrentInfo(
@@ -74,4 +74,11 @@ data class OpenMeteoResponse(
     val longitude: Double,
     val hourly: OpenMeteoHourly,
     val daily: OpenMeteoDaily
+)
+
+data class OpenMeteoParsedResult(
+    val currentInfo: UvCurrentInfo,
+    val hourly24Uv: List<Double>,
+    val hourly24Labels: List<String>,
+    val displayList: List<UvHourlyPoint>
 )

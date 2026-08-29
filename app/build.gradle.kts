@@ -69,6 +69,7 @@ dependencies {
 
     // Location Services
     implementation(libs.play.services.location)
+    implementation(libs.kotlinx.coroutines.play.services)
 
     // Coroutines & Json
     implementation(libs.kotlinx.coroutines.android)

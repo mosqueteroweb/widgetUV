@@ -1,7 +1,6 @@
 package com.hermes.widgetuv.widget
 
 import android.content.Context
-import android.content.Intent
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -26,7 +25,6 @@ import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.height
 import androidx.glance.layout.padding
-import androidx.glance.layout.width
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextAlign
@@ -62,7 +60,7 @@ class UvGlanceWidget : GlanceAppWidget() {
                 .background(ColorProvider(darkCardBg))
                 .cornerRadius(22.dp)
                 .padding(8.dp)
-                .clickable(actionStartActivity(Intent(context, MainActivity::class.java)))
+                .clickable(actionStartActivity<MainActivity>())
         ) {
             Column(
                 modifier = GlanceModifier.fillMaxSize(),

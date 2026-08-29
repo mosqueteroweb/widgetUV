@@ -25,7 +25,7 @@
             </intent-filter>
         </activity>
 
-        <!-- Glance Widget Receiver -->
+        <!-- Glance Widget 1x1 Receiver -->
         <receiver
             android:name=".widget.UvWidgetReceiver"
             android:exported="true"
@@ -36,6 +36,32 @@
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@xml/uv_widget_info" />
+        </receiver>
+
+        <!-- Glance Widget 2x1 Receiver -->
+        <receiver
+            android:name=".widget.UvWidget2x1Receiver"
+            android:exported="true"
+            android:label="@string/widget_2x1_name">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/uv_widget_2x1_info" />
+        </receiver>
+
+        <!-- Glance Widget 2x2 Receiver -->
+        <receiver
+            android:name=".widget.UvWidget2x2Receiver"
+            android:exported="true"
+            android:label="@string/widget_2x2_name">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/uv_widget_2x2_info" />
         </receiver>
 
         <!-- Boot Receiver for WorkManager -->
