@@ -3,16 +3,49 @@ package com.hermes.widgetuv.data.model
 import androidx.compose.ui.graphics.Color
 
 enum class UvRiskLevel(
-    val label: String,
+    val labelEs: String,
+    val labelEn: String,
     val hexColor: String,
     val color: Color,
-    val advice: String
+    val adviceEs: String,
+    val adviceEn: String
 ) {
-    LOW("Bajo", "#43A047", Color(0xFF43A047), "Sin riesgo. Seguro al aire libre."),
-    MODERATE("Moderado", "#FDD835", Color(0xFFFDD835), "Usa protector solar y gafas."),
-    HIGH("Alto", "#FB8C00", Color(0xFFFB8C00), "Busca sombra en horas centrales."),
-    VERY_HIGH("Muy Alto", "#E53935", Color(0xFFE53935), "Evita el sol del mediodía."),
-    EXTREME("Extremo", "#8E24AA", Color(0xFF8E24AA), "Peligro severo. Quédate en interiores.");
+    LOW(
+        "Bajo", "Low",
+        "#43A047", Color(0xFF43A047),
+        "Sin riesgo. Seguro al aire libre.",
+        "Minimal risk. Safe outdoors."
+    ),
+    MODERATE(
+        "Moderado", "Moderate",
+        "#FDD835", Color(0xFFFDD835),
+        "Usa protector solar y gafas de sol.",
+        "Wear sunscreen and sunglasses."
+    ),
+    HIGH(
+        "Alto", "High",
+        "#FB8C00", Color(0xFFFB8C00),
+        "Busca sombra en las horas centrales.",
+        "Seek shade during peak midday hours."
+    ),
+    VERY_HIGH(
+        "Muy Alto", "Very High",
+        "#E53935", Color(0xFFE53935),
+        "Evita la exposición solar al mediodía.",
+        "Avoid midday sun. Extra protection needed."
+    ),
+    EXTREME(
+        "Extremo", "Extreme",
+        "#8E24AA", Color(0xFF8E24AA),
+        "Peligro severo. Permanece en interiores.",
+        "Extreme danger. Avoid outdoor exposure."
+    );
+
+    fun getLabel(isEnglish: Boolean): String = if (isEnglish) labelEn else labelEs
+    fun getAdvice(isEnglish: Boolean): String = if (isEnglish) adviceEn else adviceEs
+
+    val label: String get() = labelEs
+    val advice: String get() = adviceEs
 
     companion object {
         fun fromValue(value: Double): UvRiskLevel = when {

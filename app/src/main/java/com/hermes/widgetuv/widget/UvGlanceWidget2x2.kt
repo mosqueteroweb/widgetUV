@@ -20,6 +20,7 @@ import androidx.glance.text.Text
 import androidx.glance.text.TextAlign
 import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
+import com.hermes.widgetuv.data.LanguageManager
 import com.hermes.widgetuv.data.model.UvCurrentInfo
 import com.hermes.widgetuv.data.model.UvHourlyPoint
 import com.hermes.widgetuv.data.model.UvRiskLevel
@@ -34,14 +35,15 @@ class UvGlanceWidget2x2 : GlanceAppWidget() {
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         val repository = UvRepository(context)
         val (info, hourly) = repository.getCurrentUvInfo(forceGpsSync = false)
+        val isEnglish = LanguageManager.isEnglish(context)
 
         provideContent {
-            UvWidget2x2Content(info = info, hourlyList = hourly)
+            UvWidget2x2Content(isEnglish = isEnglish, info = info, hourlyList = hourly)
         }
     }
 
     @Composable
-    private fun UvWidget2x2Content(info: UvCurrentInfo, hourlyList: List<UvHourlyPoint>) {
+    private fun UvWidget2x2Content(isEnglish: Boolean, info: UvCurrentInfo, hourlyList: List<UvHourlyPoint>) {
         val risk = info.riskLevel
         val riskColor = Color(android.graphics.Color.parseColor(risk.hexColor))
         val darkCardBg = Color(0xDD121316)
@@ -119,7 +121,7 @@ class UvGlanceWidget2x2 : GlanceAppWidget() {
                         .padding(horizontal = 8.dp, vertical = 2.dp)
                 ) {
                     Text(
-                        text = risk.label.uppercase(Locale.getDefault()),
+                        text = risk.getLabel(isEnglish).uppercase(Locale.getDefault()),
                         style = TextStyle(
                             color = ColorProvider(Color.Black),
                             fontSize = 10.sp,
@@ -130,8 +132,9 @@ class UvGlanceWidget2x2 : GlanceAppWidget() {
 
                 Spacer(modifier = GlanceModifier.height(2.dp))
 
+                val peakPrefix = if (isEnglish) "Peak:" else "Pico hoy:"
                 Text(
-                    text = "Pico hoy: ${String.format(Locale.US, "%.1f", info.maxTodayUv)} (${info.maxTime})",
+                    text = "$peakPrefix ${String.format(Locale.US, "%.1f", info.maxTodayUv)} (${info.maxTime})",
                     style = TextStyle(
                         color = ColorProvider(textSecondary),
                         fontSize = 10.sp,
@@ -202,11 +205,20 @@ class UvGlanceWidget2x2 : GlanceAppWidget() {
                         .cornerRadius(8.dp)
                         .padding(horizontal = 8.dp, vertical = 3.dp)
                 ) {
-                    val tip = when (risk) {
-                        UvRiskLevel.LOW -> "🟢 Sin riesgo al aire libre"
-                        UvRiskLevel.MODERATE -> "🟡 Usar FPS 30 y gafas"
-                        UvRiskLevel.HIGH -> "🟠 FPS 50+ y buscar sombra"
-                        UvRiskLevel.VERY_HIGH, UvRiskLevel.EXTREME -> "🔴 Evitar sol del mediodía"
+                    val tip = if (isEnglish) {
+                        when (risk) {
+                            UvRiskLevel.LOW -> "🟢 Safe outdoors with no risk"
+                            UvRiskLevel.MODERATE -> "🟡 Wear SPF 30 & sunglasses"
+                            UvRiskLevel.HIGH -> "🟠 SPF 50+ & seek midday shade"
+                            UvRiskLevel.VERY_HIGH, UvRiskLevel.EXTREME -> "🔴 Avoid direct midday sun exposure"
+                        }
+                    } else {
+                        when (risk) {
+                            UvRiskLevel.LOW -> "🟢 Sin riesgo al aire libre"
+                            UvRiskLevel.MODERATE -> "🟡 Usar FPS 30 y gafas"
+                            UvRiskLevel.HIGH -> "🟠 FPS 50+ y buscar sombra"
+                            UvRiskLevel.VERY_HIGH, UvRiskLevel.EXTREME -> "🔴 Evitar sol del mediodía"
+                        }
                     }
                     Text(
                         text = tip,

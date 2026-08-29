@@ -31,6 +31,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import com.hermes.widgetuv.data.LanguageManager
 import com.hermes.widgetuv.data.model.UvCurrentInfo
 import com.hermes.widgetuv.data.model.UvHourlyPoint
 import com.hermes.widgetuv.data.model.UvRiskLevel
@@ -78,6 +79,7 @@ fun UvMainScreen() {
     val scope = rememberCoroutineScope()
     val hourlyListState = rememberLazyListState()
 
+    var isEnglish by remember { mutableStateOf(LanguageManager.isEnglish(context)) }
     var uvInfo by remember { mutableStateOf<UvCurrentInfo?>(null) }
     var hourlyList by remember { mutableStateOf<List<UvHourlyPoint>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
@@ -102,7 +104,8 @@ fun UvMainScreen() {
         if (granted) {
             loadData(forceGps = true)
         } else {
-            Toast.makeText(context, "Permiso no concedido. Usando provincia guardada.", Toast.LENGTH_SHORT).show()
+            val msg = if (isEnglish) "Permission denied. Using saved location." else "Permiso no concedido. Usando provincia guardada."
+            Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
             loadData(forceGps = false)
         }
     }
@@ -143,7 +146,39 @@ fun UvMainScreen() {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Índice UV", fontWeight = FontWeight.Bold) },
+                title = {
+                    Text(
+                        text = if (isEnglish) "UV Index" else "Índice UV",
+                        fontWeight = FontWeight.Bold
+                    )
+                },
+                actions = {
+                    // Flag Toggle Button for Language Switch (ES <-> EN)
+                    Surface(
+                        shape = RoundedCornerShape(16.dp),
+                        color = MaterialTheme.colorScheme.surfaceVariant,
+                        modifier = Modifier
+                            .padding(end = 12.dp)
+                            .clip(RoundedCornerShape(16.dp))
+                            .clickable {
+                                isEnglish = LanguageManager.toggleLanguage(context)
+                                scope.launch {
+                                    updateAllGlanceWidgets(context)
+                                }
+                            }
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
+                        ) {
+                            Text(
+                                text = if (isEnglish) "🇬🇧 EN" else "🇪🇸 ES",
+                                style = MaterialTheme.typography.labelLarge,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.background
                 )
@@ -220,7 +255,7 @@ fun UvMainScreen() {
                                 color = riskColor
                             ) {
                                 Text(
-                                    text = risk.label.uppercase(Locale.getDefault()),
+                                    text = risk.getLabel(isEnglish).uppercase(Locale.getDefault()),
                                     color = Color.Black,
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 11.sp,
@@ -232,7 +267,7 @@ fun UvMainScreen() {
 
                     Spacer(modifier = Modifier.height(10.dp))
 
-                    // 3. Peak Info Card (Arrow 1: Value placed under "Pico máximo hoy:")
+                    // 3. Peak Info Card (Value under "Peak UV today:")
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(14.dp),
@@ -246,7 +281,7 @@ fun UvMainScreen() {
                                 .padding(horizontal = 14.dp, vertical = 10.dp)
                         ) {
                             Text(
-                                text = "☀️ Pico máximo hoy:",
+                                text = if (isEnglish) "☀️ Peak UV today:" else "☀️ Pico máximo hoy:",
                                 style = MaterialTheme.typography.bodyMedium,
                                 fontWeight = FontWeight.SemiBold,
                                 color = MaterialTheme.colorScheme.onSurface
@@ -256,8 +291,13 @@ fun UvMainScreen() {
                                 shape = RoundedCornerShape(8.dp),
                                 color = MaterialTheme.colorScheme.surfaceVariant
                             ) {
+                                val peakText = if (isEnglish) {
+                                    "${String.format(Locale.US, "%.1f", info.maxTodayUv)} UV at ${info.maxTime}"
+                                } else {
+                                    "${String.format(Locale.US, "%.1f", info.maxTodayUv)} UV a las ${info.maxTime}"
+                                }
                                 Text(
-                                    text = "${String.format(Locale.US, "%.1f", info.maxTodayUv)} UV a las ${info.maxTime}",
+                                    text = peakText,
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 14.sp,
                                     color = MaterialTheme.colorScheme.onSurface,
@@ -269,7 +309,7 @@ fun UvMainScreen() {
 
                     Spacer(modifier = Modifier.height(10.dp))
 
-                    // 4. Hourly Curve (Arrow 2: Removed redundant 'Ahora: XX:XX' text)
+                    // 4. Hourly Curve
                     if (hourlyList.isNotEmpty()) {
                         Row(
                             modifier = Modifier
@@ -279,12 +319,12 @@ fun UvMainScreen() {
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                text = "Curva Horaria",
+                                text = if (isEnglish) "Hourly Forecast" else "Curva Horaria",
                                 style = MaterialTheme.typography.titleSmall,
                                 fontWeight = FontWeight.Bold
                             )
                             Text(
-                                text = "7:00 a 22:00",
+                                text = if (isEnglish) "7:00 to 22:00" else "7:00 a 22:00",
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.outline,
                                 fontWeight = FontWeight.Medium
@@ -334,7 +374,7 @@ fun UvMainScreen() {
                                             color = MaterialTheme.colorScheme.primary
                                         ) {
                                             Text(
-                                                text = "AHORA",
+                                                text = if (isEnglish) "NOW" else "AHORA",
                                                 color = MaterialTheme.colorScheme.onPrimary,
                                                 fontSize = 8.sp,
                                                 fontWeight = FontWeight.ExtraBold,
@@ -363,53 +403,101 @@ fun UvMainScreen() {
 
                     Spacer(modifier = Modifier.height(10.dp))
 
-                    // 5. Interactive Recommendation Carousel
-                    val recCards = remember(info.currentUv) {
-                        listOf(
-                            RecommendationCardData(
-                                icon = "🛡️",
-                                title = "Fotoprotección Personalizada",
-                                description = risk.advice,
-                                detailBadge = when (risk) {
-                                    UvRiskLevel.LOW -> "Riesgo Mínimo"
-                                    UvRiskLevel.MODERATE -> "Protección Moderada"
-                                    UvRiskLevel.HIGH -> "Protección Alta"
-                                    UvRiskLevel.VERY_HIGH -> "Protección Muy Alta"
-                                    UvRiskLevel.EXTREME -> "Alerta Máxima"
-                                }
-                            ),
-                            RecommendationCardData(
-                                icon = "🧴",
-                                title = "Factor Solar (FPS)",
-                                description = when (risk) {
-                                    UvRiskLevel.LOW -> "FPS 15+ recomendado en pieles claras si la exposición es prolongada."
-                                    UvRiskLevel.MODERATE -> "Usa FPS 30 o 50 y reaplica cada 2 horas o tras bañarte."
-                                    UvRiskLevel.HIGH -> "Indispensable FPS 50+, sombrero de ala ancha y gafas de sol."
-                                    UvRiskLevel.VERY_HIGH, UvRiskLevel.EXTREME -> "FPS 50+ de amplio espectro (UVA/UVB) y camiseta con protección UV."
-                                },
-                                detailBadge = when (risk) {
-                                    UvRiskLevel.LOW -> "FPS 15+"
-                                    UvRiskLevel.MODERATE -> "FPS 30"
-                                    else -> "FPS 50+"
-                                }
-                            ),
-                            RecommendationCardData(
-                                icon = "☀️",
-                                title = "Síntesis de Vitamina D",
-                                description = when {
-                                    info.currentUv < 1.0 -> "Radiación baja: se requieren más de 30-40 min al aire libre para síntesis de Vitamina D."
-                                    info.currentUv < 6.0 -> "Nivel óptimo: 10 a 15 minutos de sol en brazos y rostro bastan para la dosis diaria."
-                                    else -> "Atención: La síntesis se logra en menos de 8 min. Evita el sol directo para no dañar el ADN celular."
-                                },
-                                detailBadge = "Salud Ósea e Inmune"
-                            ),
-                            RecommendationCardData(
-                                icon = "👁️",
-                                title = "Ojos y Piel Sensible",
-                                description = "La radiación UV acelera el fotoenvejecimiento y cataratas. Usa gafas homologadas con filtro UV400 y extrema cuidado en niños.",
-                                detailBadge = "Filtro UV400"
+                    // 5. Interactive Recommendation Carousel (Fully Bilingual)
+                    val recCards = remember(info.currentUv, isEnglish) {
+                        if (isEnglish) {
+                            listOf(
+                                RecommendationCardData(
+                                    icon = "🛡️",
+                                    title = "Personalized Sun Protection",
+                                    description = risk.adviceEn,
+                                    detailBadge = when (risk) {
+                                        UvRiskLevel.LOW -> "Minimal Risk"
+                                        UvRiskLevel.MODERATE -> "Moderate Protection"
+                                        UvRiskLevel.HIGH -> "High Protection"
+                                        UvRiskLevel.VERY_HIGH -> "Very High Protection"
+                                        UvRiskLevel.EXTREME -> "Maximum Alert"
+                                    }
+                                ),
+                                RecommendationCardData(
+                                    icon = "🧴",
+                                    title = "Sun Protection Factor (SPF)",
+                                    description = when (risk) {
+                                        UvRiskLevel.LOW -> "SPF 15+ recommended for fair skin during prolonged exposure."
+                                        UvRiskLevel.MODERATE -> "Apply SPF 30 or 50 every 2 hours or after swimming."
+                                        UvRiskLevel.HIGH -> "SPF 50+ essential, along with a wide-brimmed hat and sunglasses."
+                                        UvRiskLevel.VERY_HIGH, UvRiskLevel.EXTREME -> "Broad-spectrum SPF 50+ (UVA/UVB) and UV-protective shirt required."
+                                    },
+                                    detailBadge = when (risk) {
+                                        UvRiskLevel.LOW -> "SPF 15+"
+                                        UvRiskLevel.MODERATE -> "SPF 30"
+                                        else -> "SPF 50+"
+                                    }
+                                ),
+                                RecommendationCardData(
+                                    icon = "☀️",
+                                    title = "Vitamin D Synthesis",
+                                    description = when {
+                                        info.currentUv < 1.0 -> "Low UV: 30-40+ minutes of outdoor exposure needed for daily Vitamin D synthesis."
+                                        info.currentUv < 6.0 -> "Optimal UV: 10 to 15 minutes of sun on face and arms provides the full daily dose."
+                                        else -> "Caution: Daily synthesis achieved in under 8 minutes. Avoid direct prolonged exposure to prevent cellular damage."
+                                    },
+                                    detailBadge = "Bone & Immune Health"
+                                ),
+                                RecommendationCardData(
+                                    icon = "👁️",
+                                    title = "Eye Care & Sensitive Skin",
+                                    description = "UV radiation accelerates photoaging and cataracts. Always wear certified UV400 sunglasses and protect young children.",
+                                    detailBadge = "UV400 Filter"
+                                )
                             )
-                        )
+                        } else {
+                            listOf(
+                                RecommendationCardData(
+                                    icon = "🛡️",
+                                    title = "Fotoprotección Personalizada",
+                                    description = risk.adviceEs,
+                                    detailBadge = when (risk) {
+                                        UvRiskLevel.LOW -> "Riesgo Mínimo"
+                                        UvRiskLevel.MODERATE -> "Protección Moderada"
+                                        UvRiskLevel.HIGH -> "Protección Alta"
+                                        UvRiskLevel.VERY_HIGH -> "Protección Muy Alta"
+                                        UvRiskLevel.EXTREME -> "Alerta Máxima"
+                                    }
+                                ),
+                                RecommendationCardData(
+                                    icon = "🧴",
+                                    title = "Factor Solar (FPS)",
+                                    description = when (risk) {
+                                        UvRiskLevel.LOW -> "FPS 15+ recomendado en pieles claras si la exposición es prolongada."
+                                        UvRiskLevel.MODERATE -> "Usa FPS 30 o 50 y reaplica cada 2 horas o tras bañarte."
+                                        UvRiskLevel.HIGH -> "Indispensable FPS 50+, sombrero de ala ancha y gafas de sol."
+                                        UvRiskLevel.VERY_HIGH, UvRiskLevel.EXTREME -> "FPS 50+ de amplio espectro (UVA/UVB) y camiseta con protección UV."
+                                    },
+                                    detailBadge = when (risk) {
+                                        UvRiskLevel.LOW -> "FPS 15+"
+                                        UvRiskLevel.MODERATE -> "FPS 30"
+                                        else -> "FPS 50+"
+                                    }
+                                ),
+                                RecommendationCardData(
+                                    icon = "☀️",
+                                    title = "Síntesis de Vitamina D",
+                                    description = when {
+                                        info.currentUv < 1.0 -> "Radiación baja: se requieren más de 30-40 min al aire libre para síntesis de Vitamina D."
+                                        info.currentUv < 6.0 -> "Nivel óptimo: 10 a 15 minutos de sol en brazos y rostro bastan para la dosis diaria."
+                                        else -> "Atención: La síntesis se logra en menos de 8 min. Evita el sol directo para no dañar el ADN celular."
+                                    },
+                                    detailBadge = "Salud Ósea e Inmune"
+                                ),
+                                RecommendationCardData(
+                                    icon = "👁️",
+                                    title = "Ojos y Piel Sensible",
+                                    description = "La radiación UV acelera el fotoenvejecimiento y cataratas. Usa gafas homologadas con filtro UV400 y extrema cuidado en niños.",
+                                    detailBadge = "Filtro UV400"
+                                )
+                            )
+                        }
                     }
 
                     Card(
@@ -426,7 +514,7 @@ fun UvMainScreen() {
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(
-                                    text = "Recomendaciones de Salud",
+                                    text = if (isEnglish) "Health Recommendations" else "Recomendaciones de Salud",
                                     fontWeight = FontWeight.Bold,
                                     style = MaterialTheme.typography.titleSmall
                                 )
@@ -493,7 +581,10 @@ fun UvMainScreen() {
                                     },
                                     contentPadding = PaddingValues(horizontal = 6.dp, vertical = 0.dp)
                                 ) {
-                                    Text("◀ Anterior", fontSize = 12.sp)
+                                    Text(
+                                        text = if (isEnglish) "◀ Previous" else "◀ Anterior",
+                                        fontSize = 12.sp
+                                    )
                                 }
                                 Text(
                                     text = "${selectedRecTab + 1} / ${recCards.size}",
@@ -506,7 +597,10 @@ fun UvMainScreen() {
                                     },
                                     contentPadding = PaddingValues(horizontal = 6.dp, vertical = 0.dp)
                                 ) {
-                                    Text("Siguiente ▶", fontSize = 12.sp)
+                                    Text(
+                                        text = if (isEnglish) "Next ▶" else "Siguiente ▶",
+                                        fontSize = 12.sp
+                                    )
                                 }
                             }
                         }
@@ -539,7 +633,7 @@ fun UvMainScreen() {
                                 Text("📍", fontSize = 16.sp)
                                 Spacer(modifier = Modifier.width(6.dp))
                                 Text(
-                                    text = "Forzar Lectura GPS y Actualizar",
+                                    text = if (isEnglish) "Force GPS Sync & Refresh" else "Forzar Lectura GPS y Actualizar",
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 14.sp,
                                     textAlign = TextAlign.Center
@@ -552,8 +646,13 @@ fun UvMainScreen() {
 
                     // Subtle GPS schedule hint
                     val dateStr = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(info.lastUpdated))
+                    val syncText = if (isEnglish) {
+                        "Synced: $dateStr · Auto-GPS: 7:00 AM / 2:00 PM"
+                    } else {
+                        "Sincronizado: $dateStr · Auto-GPS: 7:00 AM / 2:00 PM"
+                    }
                     Text(
-                        text = "Sincronizado: $dateStr · Auto-GPS: 7:00 AM / 2:00 PM",
+                        text = syncText,
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.outline
                     )

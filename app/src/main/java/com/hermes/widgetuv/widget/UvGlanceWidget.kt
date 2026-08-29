@@ -7,32 +7,24 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
-import androidx.glance.action.ActionParameters
 import androidx.glance.action.actionStartActivity
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
-import androidx.glance.appwidget.action.ActionCallback
-import androidx.glance.appwidget.action.actionRunCallback
+import androidx.glance.appwidget.GlanceAppWidgetReceiver
 import androidx.glance.appwidget.cornerRadius
 import androidx.glance.appwidget.provideContent
 import androidx.glance.background
-import androidx.glance.layout.Alignment
-import androidx.glance.layout.Box
-import androidx.glance.layout.Column
-import androidx.glance.layout.Row
-import androidx.glance.layout.Spacer
-import androidx.glance.layout.fillMaxSize
-import androidx.glance.layout.fillMaxWidth
-import androidx.glance.layout.height
-import androidx.glance.layout.padding
+import androidx.glance.layout.*
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextAlign
 import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
+import com.hermes.widgetuv.data.LanguageManager
 import com.hermes.widgetuv.data.model.UvCurrentInfo
 import com.hermes.widgetuv.data.repository.UvRepository
 import com.hermes.widgetuv.ui.MainActivity
+import com.hermes.widgetuv.worker.UvScheduleManager
 import java.util.Locale
 
 class UvGlanceWidget : GlanceAppWidget() {
@@ -40,14 +32,15 @@ class UvGlanceWidget : GlanceAppWidget() {
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         val repository = UvRepository(context)
         val (info, _) = repository.getCurrentUvInfo(forceGpsSync = false)
+        val isEnglish = LanguageManager.isEnglish(context)
 
         provideContent {
-            UvWidgetContent(context = context, info = info)
+            UvWidgetContent(isEnglish = isEnglish, info = info)
         }
     }
 
     @Composable
-    private fun UvWidgetContent(context: Context, info: UvCurrentInfo) {
+    private fun UvWidgetContent(isEnglish: Boolean, info: UvCurrentInfo) {
         val risk = info.riskLevel
         val riskColor = Color(android.graphics.Color.parseColor(risk.hexColor))
         val darkCardBg = Color(0xDD121316)
@@ -90,7 +83,7 @@ class UvGlanceWidget : GlanceAppWidget() {
                     text = String.format(Locale.US, "%.1f", info.currentUv),
                     style = TextStyle(
                         color = ColorProvider(riskColor),
-                        fontSize = 26.sp,
+                        fontSize = 28.sp,
                         fontWeight = FontWeight.Bold,
                         textAlign = TextAlign.Center
                     )
@@ -104,7 +97,7 @@ class UvGlanceWidget : GlanceAppWidget() {
                         .padding(horizontal = 6.dp, vertical = 2.dp)
                 ) {
                     Text(
-                        text = risk.label.uppercase(Locale.getDefault()),
+                        text = risk.getLabel(isEnglish).uppercase(Locale.getDefault()),
                         style = TextStyle(
                             color = ColorProvider(Color.Black),
                             fontSize = 9.sp,
@@ -113,11 +106,12 @@ class UvGlanceWidget : GlanceAppWidget() {
                     )
                 }
 
-                Spacer(modifier = GlanceModifier.height(3.dp))
+                Spacer(modifier = GlanceModifier.height(2.dp))
 
-                // Peak info of today
+                // Peak UV
+                val maxPrefix = if (isEnglish) "Peak" else "Máx"
                 Text(
-                    text = "Máx ${String.format(Locale.US, "%.1f", info.maxTodayUv)} (${info.maxTime})",
+                    text = "$maxPrefix ${String.format(Locale.US, "%.1f", info.maxTodayUv)} (${info.maxTime})",
                     style = TextStyle(
                         color = ColorProvider(textSecondary),
                         fontSize = 9.sp,

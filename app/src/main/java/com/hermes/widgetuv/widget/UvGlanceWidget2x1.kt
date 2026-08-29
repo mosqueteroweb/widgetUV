@@ -20,6 +20,7 @@ import androidx.glance.text.Text
 import androidx.glance.text.TextAlign
 import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
+import com.hermes.widgetuv.data.LanguageManager
 import com.hermes.widgetuv.data.model.UvCurrentInfo
 import com.hermes.widgetuv.data.model.UvHourlyPoint
 import com.hermes.widgetuv.data.model.UvRiskLevel
@@ -34,14 +35,15 @@ class UvGlanceWidget2x1 : GlanceAppWidget() {
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         val repository = UvRepository(context)
         val (info, hourly) = repository.getCurrentUvInfo(forceGpsSync = false)
+        val isEnglish = LanguageManager.isEnglish(context)
 
         provideContent {
-            UvWidget2x1Content(info = info, hourlyList = hourly)
+            UvWidget2x1Content(isEnglish = isEnglish, info = info, hourlyList = hourly)
         }
     }
 
     @Composable
-    private fun UvWidget2x1Content(info: UvCurrentInfo, hourlyList: List<UvHourlyPoint>) {
+    private fun UvWidget2x1Content(isEnglish: Boolean, info: UvCurrentInfo, hourlyList: List<UvHourlyPoint>) {
         val risk = info.riskLevel
         val riskColor = Color(android.graphics.Color.parseColor(risk.hexColor))
         val darkCardBg = Color(0xDD121316)
@@ -103,7 +105,7 @@ class UvGlanceWidget2x1 : GlanceAppWidget() {
                             .padding(horizontal = 6.dp, vertical = 2.dp)
                     ) {
                         Text(
-                            text = risk.label.uppercase(Locale.getDefault()),
+                            text = risk.getLabel(isEnglish).uppercase(Locale.getDefault()),
                             style = TextStyle(
                                 color = ColorProvider(Color.Black),
                                 fontSize = 9.sp,
@@ -175,8 +177,9 @@ class UvGlanceWidget2x1 : GlanceAppWidget() {
                     Spacer(modifier = GlanceModifier.height(4.dp))
 
                     // Peak Info
+                    val peakLabel = if (isEnglish) "Peak" else "Máx"
                     Text(
-                        text = "Máx ${String.format(Locale.US, "%.1f", info.maxTodayUv)} (${info.maxTime})",
+                        text = "$peakLabel ${String.format(Locale.US, "%.1f", info.maxTodayUv)} (${info.maxTime})",
                         style = TextStyle(
                             color = ColorProvider(textSecondary),
                             fontSize = 9.sp,
