@@ -5,6 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.datastore.preferences.core.Preferences
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
 import androidx.glance.action.actionStartActivity
@@ -14,7 +15,10 @@ import androidx.glance.appwidget.GlanceAppWidgetReceiver
 import androidx.glance.appwidget.cornerRadius
 import androidx.glance.appwidget.provideContent
 import androidx.glance.background
+import androidx.glance.currentState
 import androidx.glance.layout.*
+import androidx.glance.state.GlanceStateDefinition
+import androidx.glance.state.PreferencesGlanceStateDefinition
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextAlign
@@ -32,12 +36,15 @@ import java.util.Locale
 
 class UvGlanceWidget2x1 : GlanceAppWidget() {
 
+    override var stateDefinition: GlanceStateDefinition<*> = PreferencesGlanceStateDefinition
+
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         val repository = UvRepository(context)
         val (info, hourly) = repository.getCurrentUvInfo(forceGpsSync = false)
-        val isEnglish = LanguageManager.isEnglish(context)
 
         provideContent {
+            val prefs = currentState<Preferences>()
+            val isEnglish = prefs[WidgetKeys.IS_ENGLISH] ?: LanguageManager.isEnglish(context)
             UvWidget2x1Content(isEnglish = isEnglish, info = info, hourlyList = hourly)
         }
     }
