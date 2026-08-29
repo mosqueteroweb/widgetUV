@@ -1,6 +1,7 @@
 package com.hermes.widgetuv.worker
 
 import android.content.Context
+import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.glance.appwidget.updateAll
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
@@ -10,9 +11,27 @@ import com.hermes.widgetuv.widget.UvGlanceWidget2x1
 import com.hermes.widgetuv.widget.UvGlanceWidget2x2
 
 suspend fun updateAllGlanceWidgets(context: Context) {
-    try { UvGlanceWidget().updateAll(context) } catch (e: Exception) {}
-    try { UvGlanceWidget2x1().updateAll(context) } catch (e: Exception) {}
-    try { UvGlanceWidget2x2().updateAll(context) } catch (e: Exception) {}
+    val appContext = context.applicationContext
+    try {
+        val manager = GlanceAppWidgetManager(appContext)
+        val ids1 = manager.getGlanceIds(UvGlanceWidget::class.java)
+        ids1.forEach { id -> UvGlanceWidget().update(appContext, id) }
+    } catch (e: Exception) {}
+    try { UvGlanceWidget().updateAll(appContext) } catch (e: Exception) {}
+
+    try {
+        val manager = GlanceAppWidgetManager(appContext)
+        val ids2 = manager.getGlanceIds(UvGlanceWidget2x1::class.java)
+        ids2.forEach { id -> UvGlanceWidget2x1().update(appContext, id) }
+    } catch (e: Exception) {}
+    try { UvGlanceWidget2x1().updateAll(appContext) } catch (e: Exception) {}
+
+    try {
+        val manager = GlanceAppWidgetManager(appContext)
+        val ids3 = manager.getGlanceIds(UvGlanceWidget2x2::class.java)
+        ids3.forEach { id -> UvGlanceWidget2x2().update(appContext, id) }
+    } catch (e: Exception) {}
+    try { UvGlanceWidget2x2().updateAll(appContext) } catch (e: Exception) {}
 }
 
 /**

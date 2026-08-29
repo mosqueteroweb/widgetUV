@@ -8,7 +8,8 @@ object LanguageManager {
     private const val KEY_LANG = "app_language" // "es", "en", or null (auto)
 
     fun isEnglish(context: Context): Boolean {
-        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val appContext = context.applicationContext ?: context
+        val prefs = appContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         val saved = prefs.getString(KEY_LANG, null)
         return if (saved != null) {
             saved == "en"
@@ -18,10 +19,11 @@ object LanguageManager {
     }
 
     fun setLanguage(context: Context, isEnglish: Boolean) {
-        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val appContext = context.applicationContext ?: context
+        val prefs = appContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         prefs.edit()
             .putString(KEY_LANG, if (isEnglish) "en" else "es")
-            .apply()
+            .commit()
     }
 
     fun toggleLanguage(context: Context): Boolean {
