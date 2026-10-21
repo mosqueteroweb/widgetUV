@@ -27,8 +27,8 @@ android {
         applicationId = "com.hermes.widgetuv"
         minSdk = 26
         targetSdk = 34
-        versionCode = 6
-        versionName = "1.2.5"
+        versionCode = 7
+        versionName = "1.2.6"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -85,6 +85,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.11"

@@ -4,7 +4,7 @@
 - **Ruta local**: `/Users/pedro/carpetaHermes/widgetUV`
 - **Fecha de auditoría**: Octubre 2026
 - **Tipo de aplicación**: Android Nativa (Kotlin + Jetpack Glance + Jetpack Compose + WorkManager)
-- **Versión evaluada**: `1.2.5` (versionCode `6`)
+- **Versión evaluada**: `1.2.6` (versionCode `7`, actualizada desde `1.2.5`)
 - **Autoría oficial**: [Mosqueteroweb (Pedro Mosqueteroweb)](https://github.com/mosqueteroweb)
 - **Licencia**: GNU General Public License v3.0 (`GPL-3.0`)
 - **Calificación Global Inicial**: 8.4 / 10

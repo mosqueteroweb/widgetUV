@@ -33,6 +33,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import com.hermes.widgetuv.BuildConfig
 import com.hermes.widgetuv.R
 import com.hermes.widgetuv.data.LanguageManager
 import com.hermes.widgetuv.data.model.UvCurrentInfo
@@ -681,9 +682,9 @@ fun UvMainScreen() {
                         Spacer(modifier = Modifier.width(10.dp))
                         Text(
                             text = if (isEnglish) {
-                                "Widget UV v1.2.5 • By Mosqueteroweb • Open Source (GPLv3)"
+                                "Widget UV v${BuildConfig.VERSION_NAME} • By Mosqueteroweb • Open Source (GPLv3)"
                             } else {
-                                "Widget UV v1.2.5 • Por Mosqueteroweb • Código Libre (GPLv3)"
+                                "Widget UV v${BuildConfig.VERSION_NAME} • Por Mosqueteroweb • Código Libre (GPLv3)"
                             },
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f),
