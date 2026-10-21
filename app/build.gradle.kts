@@ -1,6 +1,22 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
+}
+
+val localProperties = Properties().apply {
+    val localPropertiesFile = rootProject.file("local.properties")
+    if (localPropertiesFile.exists()) {
+        localPropertiesFile.inputStream().use { load(it) }
+    }
+}
+
+fun getSecret(key: String, default: String? = null): String? {
+    return System.getenv(key)
+        ?: localProperties.getProperty(key)
+        ?: (project.findProperty(key) as? String)
+        ?: default
 }
 
 android {
@@ -20,13 +36,44 @@ android {
         }
     }
 
+    val keystorePath = getSecret("KEYSTORE_PATH", "keystore/release.keystore")
+    val keystoreFile = keystorePath?.let { file(it) }
+    val storePasswordVal = getSecret("KEYSTORE_PASSWORD")
+    val keyAliasVal = getSecret("KEY_ALIAS")
+    val keyPasswordVal = getSecret("KEY_PASSWORD")
+
+    val hasSigningKeys = keystoreFile != null && keystoreFile.exists() &&
+            !storePasswordVal.isNullOrBlank() &&
+            !keyAliasVal.isNullOrBlank() &&
+            !keyPasswordVal.isNullOrBlank()
+
+    signingConfigs {
+        if (hasSigningKeys) {
+            create("release") {
+                storeFile = keystoreFile
+                storePassword = storePasswordVal
+                keyAlias = keyAliasVal
+                keyPassword = keyPasswordVal
+            }
+        }
+    }
+
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
+            if (hasSigningKeys) {
+                signingConfig = signingConfigs.getByName("release")
+            }
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+        }
+        debug {
+            if (hasSigningKeys) {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
     }
     compileOptions {
@@ -75,5 +122,6 @@ dependencies {
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.gson)
 
+    testImplementation(libs.junit)
     debugImplementation(libs.androidx.ui.tooling)
 }

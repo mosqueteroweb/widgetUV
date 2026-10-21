@@ -59,13 +59,16 @@ object UvScheduleManager {
         )
     }
 
-    private fun calculateDelayToNext(targetHour: Int, targetMinute: Int): Duration {
-        val now = LocalDateTime.now()
-        var target = now.with(LocalTime.of(targetHour, targetMinute, 0))
-        if (now.isAfter(target)) {
+    internal fun calculateDelayToNext(
+        targetHour: Int,
+        targetMinute: Int,
+        from: LocalDateTime = LocalDateTime.now()
+    ): Duration {
+        var target = from.with(LocalTime.of(targetHour, targetMinute, 0))
+        if (from.isAfter(target)) {
             target = target.plusDays(1)
         }
-        return Duration.between(now, target)
+        return Duration.between(from, target)
     }
 
     fun cancelAll(context: Context) {
