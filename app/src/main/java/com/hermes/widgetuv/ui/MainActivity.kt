@@ -8,6 +8,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -26,11 +27,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import com.hermes.widgetuv.R
 import com.hermes.widgetuv.data.LanguageManager
 import com.hermes.widgetuv.data.model.UvCurrentInfo
 import com.hermes.widgetuv.data.model.UvHourlyPoint
@@ -657,7 +660,38 @@ fun UvMainScreen() {
                         color = MaterialTheme.colorScheme.outline
                     )
 
-                    Spacer(modifier = Modifier.height(10.dp))
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // 7. Mosqueteroweb Authorship Footer
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 6.dp)
+                    ) {
+                        Image(
+                            painter = painterResource(id = R.drawable.ic_mosqueteroweb),
+                            contentDescription = "Mosqueteroweb",
+                            modifier = Modifier
+                                .size(34.dp)
+                                .clip(CircleShape)
+                                .border(1.dp, MaterialTheme.colorScheme.outlineVariant, CircleShape)
+                        )
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Text(
+                            text = if (isEnglish) {
+                                "Widget UV v1.2.5 • By Mosqueteroweb • Open Source (GPLv3)"
+                            } else {
+                                "Widget UV v1.2.5 • Por Mosqueteroweb • Código Libre (GPLv3)"
+                            },
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f),
+                            textAlign = TextAlign.Start
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
                 }
             }
         }
