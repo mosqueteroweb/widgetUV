@@ -39,11 +39,7 @@ class LocationHelper(private val context: Context) {
             context,
             android.Manifest.permission.ACCESS_COARSE_LOCATION
         ) == PackageManager.PERMISSION_GRANTED
-        val fine = ContextCompat.checkSelfPermission(
-            context,
-            android.Manifest.permission.ACCESS_FINE_LOCATION
-        ) == PackageManager.PERMISSION_GRANTED
-        return coarse || fine
+        return coarse
     }
 
     @SuppressLint("MissingPermission")
@@ -63,10 +59,13 @@ class LocationHelper(private val context: Context) {
             }
 
             if (location != null) {
-                val provinceName = getProvinceName(location.latitude, location.longitude)
+                // Rounded to ~1 km before it is stored or sent to Open-Meteo / BigDataCloud: UV does not change within a town.
+                val lat = toKilometre(location.latitude)
+                val lon = toKilometre(location.longitude)
+                val provinceName = getProvinceName(lat, lon)
                 val coords = GeoCoordinates(
-                    latitude = location.latitude,
-                    longitude = location.longitude,
+                    latitude = lat,
+                    longitude = lon,
                     label = provinceName
                 )
                 saveCustomLocation(coords.latitude, coords.longitude, coords.label)
@@ -139,7 +138,7 @@ class LocationHelper(private val context: Context) {
         try {
             val urlString = String.format(
                 Locale.US,
-                "https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=%.4f&longitude=%.4f&localityLanguage=es",
+                "https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=%.2f&longitude=%.2f&localityLanguage=es",
                 lat,
                 lon
             )
@@ -175,6 +174,8 @@ class LocationHelper(private val context: Context) {
 
         return@withContext "Ubicación actual"
     }
+
+    private fun toKilometre(value: Double): Double = Math.round(value * 100.0) / 100.0
 
     private fun getSavedOrDefault(): GeoCoordinates {
         val prefs = context.getSharedPreferences("widget_uv_prefs", Context.MODE_PRIVATE)

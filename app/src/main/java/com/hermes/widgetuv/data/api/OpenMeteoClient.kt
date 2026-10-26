@@ -7,8 +7,6 @@ import com.hermes.widgetuv.data.model.UvCurrentInfo
 import com.hermes.widgetuv.data.model.UvHourlyPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.io.BufferedReader
-import java.io.InputStreamReader
 import java.net.HttpURLConnection
 import java.net.URL
 import java.time.LocalDateTime
@@ -18,12 +16,19 @@ import java.util.Locale
 class OpenMeteoClient {
     private val gson = Gson()
 
+    companion object {
+        private const val MAX_RESPONSE_BYTES = 256 * 1024
+
+        /** The UV index never goes below 0 and has never been recorded above ~25: anything else is a bad value. */
+        fun validUv(value: Double?): Double = value?.takeIf { it.isFinite() && it in 0.0..25.0 } ?: 0.0
+    }
+
     suspend fun fetchUvData(lat: Double, lon: Double, locationLabel: String = "Mi Ubicación"): Result<OpenMeteoParsedResult> =
         withContext(Dispatchers.IO) {
             try {
                 val urlString = String.format(
                     Locale.US,
-                    "https://api.open-meteo.com/v1/forecast?latitude=%.4f&longitude=%.4f&hourly=uv_index,is_day&daily=uv_index_max&timezone=auto&forecast_days=1",
+                    "https://api.open-meteo.com/v1/forecast?latitude=%.2f&longitude=%.2f&hourly=uv_index,is_day&daily=uv_index_max&timezone=auto&forecast_days=1",
                     lat,
                     lon
                 )
@@ -36,9 +41,19 @@ class OpenMeteoClient {
                 }
 
                 if (conn.responseCode == 200) {
-                    val reader = BufferedReader(InputStreamReader(conn.inputStream))
-                    val json = reader.readText()
-                    reader.close()
+                    // A one-day forecast is a few KB: refuse anything absurdly large.
+                    val json = conn.inputStream.use { stream ->
+                        val out = java.io.ByteArrayOutputStream()
+                        val buffer = ByteArray(8192)
+                        while (true) {
+                            val read = stream.read(buffer)
+                            if (read < 0) break
+                            out.write(buffer, 0, read)
+                            require(out.size() <= MAX_RESPONSE_BYTES) { "Respuesta demasiado grande" }
+                        }
+                        out.toString(Charsets.UTF_8.name())
+                    }
+                    conn.disconnect()
 
                     val response = gson.fromJson(json, OpenMeteoResponse::class.java)
                     val result = parseUvInfo(response, locationLabel)
@@ -72,7 +87,7 @@ class OpenMeteoClient {
 
         // Populate full 24h day arrays
         for (i in 0 until 24) {
-            val uv = if (i in hourlyUv.indices) hourlyUv[i] else 0.0
+            val uv = validUv(hourlyUv.getOrNull(i))
             val timeStr = if (i in hourlyTimes.indices) hourlyTimes[i] else String.format(Locale.US, "%02d:00", i)
             val label = try {
                 val dt = LocalDateTime.parse(timeStr)
@@ -96,7 +111,7 @@ class OpenMeteoClient {
         }
 
         val currentUv = hourly24Uv.getOrElse(currentHour) { 0.0 }
-        val maxTodayUv = if (maxVal >= 0.0) maxVal else (response.daily.uv_index_max.firstOrNull() ?: currentUv)
+        val maxTodayUv = if (maxVal >= 0.0) maxVal else validUv(response.daily.uv_index_max.firstOrNull() ?: currentUv)
         val maxHourStr = String.format(Locale.getDefault(), "%02d:00", maxHour)
 
         val isDay = if (hourlyIsDay != null && currentHour in hourlyIsDay.indices) {

@@ -103,8 +103,7 @@ fun UvMainScreen() {
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
-        val granted = permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true ||
-                permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true
+        val granted = permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true
         if (granted) {
             loadData(forceGps = true)
         } else {
@@ -123,10 +122,8 @@ fun UvMainScreen() {
 
         if (!hasCoarse) {
             permissionLauncher.launch(
-                arrayOf(
-                    Manifest.permission.ACCESS_FINE_LOCATION,
-                    Manifest.permission.ACCESS_COARSE_LOCATION
-                )
+                // Approximate location is enough for a UV forecast: no GPS-precise position is requested.
+                arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION)
             )
         } else {
             loadData(forceGps = true)

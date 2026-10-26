@@ -27,8 +27,8 @@ android {
         applicationId = "com.hermes.widgetuv"
         minSdk = 26
         targetSdk = 34
-        versionCode = 7
-        versionName = "1.2.6"
+        versionCode = 8
+        versionName = "1.3.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -71,9 +71,7 @@ android {
             )
         }
         debug {
-            if (hasSigningKeys) {
-                signingConfig = signingConfigs.getByName("release")
-            }
+            // Debug builds keep the Android debug certificate; only releases use the release key.
         }
     }
     compileOptions {
