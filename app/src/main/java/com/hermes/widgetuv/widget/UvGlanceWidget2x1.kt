@@ -1,5 +1,7 @@
 package com.hermes.widgetuv.widget
 
+import androidx.glance.semantics.contentDescription
+import androidx.glance.semantics.semantics
 import com.hermes.widgetuv.data.model.formatUv
 import android.content.Context
 import androidx.compose.runtime.Composable
@@ -71,6 +73,10 @@ class UvGlanceWidget2x1 : GlanceAppWidget() {
                 .cornerRadius(22.dp)
                 .padding(horizontal = 12.dp, vertical = 8.dp)
                 .clickable(actionStartActivity<MainActivity>())
+                .semantics {
+                    contentDescription = risk.spokenDescription(formatUv(info.currentUv, isEnglish), isEnglish) +
+                        (if (isEnglish) ". Peak ${formatUv(info.maxTodayUv, isEnglish)} at ${info.maxTime}" else ". Máximo ${formatUv(info.maxTodayUv, isEnglish)} a las ${info.maxTime}")
+                }
         ) {
             Row(
                 modifier = GlanceModifier.fillMaxSize(),
@@ -99,7 +105,7 @@ class UvGlanceWidget2x1 : GlanceAppWidget() {
                     Text(
                         text = formatUv(info.currentUv, isEnglish),
                         style = TextStyle(
-                            color = ColorProvider(riskColor),
+                            color = ColorProvider(risk.textColor(onDark = true)),
                             fontSize = 26.sp,
                             fontWeight = FontWeight.Bold,
                             textAlign = TextAlign.Center
@@ -115,8 +121,8 @@ class UvGlanceWidget2x1 : GlanceAppWidget() {
                         Text(
                             text = risk.getLabel(isEnglish).uppercase(Locale.getDefault()),
                             style = TextStyle(
-                                color = ColorProvider(Color.Black),
-                                fontSize = 9.sp,
+                                color = ColorProvider(risk.badgeTextColor),
+                                fontSize = 10.sp,
                                 fontWeight = FontWeight.Bold
                             )
                         )
@@ -159,7 +165,7 @@ class UvGlanceWidget2x1 : GlanceAppWidget() {
                                     text = hourShort,
                                     style = TextStyle(
                                         color = ColorProvider(textSecondary),
-                                        fontSize = 9.sp
+                                        fontSize = 10.sp
                                     )
                                 )
                                 Spacer(modifier = GlanceModifier.height(2.dp))
@@ -174,7 +180,7 @@ class UvGlanceWidget2x1 : GlanceAppWidget() {
                                     text = formatUv(item.uv, isEnglish),
                                     style = TextStyle(
                                         color = ColorProvider(Color.White),
-                                        fontSize = 9.sp,
+                                        fontSize = 10.sp,
                                         fontWeight = FontWeight.Bold
                                     )
                                 )
@@ -190,7 +196,7 @@ class UvGlanceWidget2x1 : GlanceAppWidget() {
                         text = "$peakLabel ${formatUv(info.maxTodayUv, isEnglish)} (${info.maxTime})",
                         style = TextStyle(
                             color = ColorProvider(textSecondary),
-                            fontSize = 9.sp,
+                            fontSize = 10.sp,
                             textAlign = TextAlign.Center
                         )
                     )

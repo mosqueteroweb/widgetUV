@@ -42,6 +42,18 @@ enum class UvRiskLevel(
     );
 
     fun getLabel(isEnglish: Boolean): String = if (isEnglish) labelEn else labelEs
+
+    /** Text in the risk colour that keeps 4.5:1 contrast: darker on light backgrounds, lighter on the dark widget. */
+    fun textColor(onDark: Boolean): Color = Color(android.graphics.Color.parseColor(
+        if (onDark) mapOf(VERY_HIGH to "#E95855", EXTREME to "#C25DDD")[this] ?: hexColor
+        else mapOf(LOW to "#358039", MODERATE to "#886F01", HIGH to "#A95E00", VERY_HIGH to "#DA201C")[this] ?: hexColor
+    ))
+
+    /** Black text on the level badge, except on the violet "Extremo" where only white reaches 4.5:1. */
+    val badgeTextColor: Color get() = if (this == EXTREME) Color.White else Color.Black
+
+    fun spokenDescription(value: String, isEnglish: Boolean): String =
+        if (isEnglish) "UV index $value, ${labelEn.lowercase()}" else "Índice UV $value, ${labelEs.lowercase()}"
     fun getAdvice(isEnglish: Boolean): String = if (isEnglish) adviceEn else adviceEs
 
     val label: String get() = labelEs

@@ -1,5 +1,12 @@
 package com.hermes.widgetuv.ui
 
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.foundation.layout.sizeIn
+import androidx.compose.foundation.isSystemInDarkTheme
 import com.hermes.widgetuv.data.model.formatUv
 import android.Manifest
 import android.content.pm.PackageManager
@@ -162,6 +169,10 @@ fun UvMainScreen() {
                         modifier = Modifier
                             .padding(end = 12.dp)
                             .clip(RoundedCornerShape(16.dp))
+                            .semantics(mergeDescendants = true) {
+                                contentDescription = if (isEnglish) "Language: English. Switch to Spanish" else "Idioma: español. Cambiar a inglés"
+                                role = Role.Button
+                            }
                             .clickable {
                                 isEnglish = LanguageManager.toggleLanguage(context)
                                 scope.launch {
@@ -217,7 +228,11 @@ fun UvMainScreen() {
                         modifier = Modifier
                             .padding(bottom = 8.dp)
                             .clip(RoundedCornerShape(12.dp))
-                            .clickable { loadData(forceGps = true) }
+                            .clickable(onClickLabel = if (isEnglish) "Update location" else "Actualizar ubicación") { loadData(forceGps = true) }
+                            .semantics(mergeDescendants = true) {
+                                contentDescription = if (isEnglish) "Location: ${info.locationName}" else "Ubicación: ${info.locationName}"
+                                role = Role.Button
+                            }
                     ) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
@@ -238,11 +253,16 @@ fun UvMainScreen() {
                     }
 
                     // 2. UV Circle Display
+                    val onDark = isSystemInDarkTheme()
                     Box(
                         modifier = Modifier
-                            .size(160.dp)
-                            .clip(CircleShape)
-                            .background(riskColor.copy(alpha = 0.15f)),
+                            .sizeIn(minWidth = 160.dp, minHeight = 160.dp)
+                            // Background only: clipping to the circle cut the level badge with large text.
+                            .background(riskColor.copy(alpha = 0.15f), CircleShape)
+                            .padding(16.dp)
+                            .clearAndSetSemantics {
+                                contentDescription = risk.spokenDescription(formatUv(info.currentUv, isEnglish), isEnglish)
+                            },
                         contentAlignment = Alignment.Center
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -250,7 +270,7 @@ fun UvMainScreen() {
                                 text = formatUv(info.currentUv, isEnglish),
                                 fontSize = 48.sp,
                                 fontWeight = FontWeight.ExtraBold,
-                                color = riskColor
+                                color = risk.textColor(onDark)
                             )
                             Surface(
                                 shape = RoundedCornerShape(8.dp),
@@ -258,7 +278,7 @@ fun UvMainScreen() {
                             ) {
                                 Text(
                                     text = risk.getLabel(isEnglish).uppercase(Locale.getDefault()),
-                                    color = Color.Black,
+                                    color = risk.badgeTextColor,
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 11.sp,
                                     modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
@@ -348,6 +368,11 @@ fun UvMainScreen() {
                                 Column(
                                     horizontalAlignment = Alignment.CenterHorizontally,
                                     modifier = Modifier
+                                        .clearAndSetSemantics {
+                                            val now = if (isThisHour) (if (isEnglish) ", now" else ", ahora") else ""
+                                            contentDescription = "${item.hourLabel}$now: " +
+                                                itemRisk.spokenDescription(formatUv(item.uv, isEnglish), isEnglish)
+                                        }
                                         .clip(RoundedCornerShape(10.dp))
                                         .background(
                                             if (isThisHour) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.45f)
@@ -396,7 +421,7 @@ fun UvMainScreen() {
                                         text = formatUv(item.uv, isEnglish),
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 12.sp,
-                                        color = itemColor
+                                        color = itemRisk.textColor(isSystemInDarkTheme())
                                     )
                                 }
                             }
@@ -518,9 +543,16 @@ fun UvMainScreen() {
                                 Text(
                                     text = if (isEnglish) "Health Recommendations" else "Recomendaciones de Salud",
                                     fontWeight = FontWeight.Bold,
-                                    style = MaterialTheme.typography.titleSmall
+                                    style = MaterialTheme.typography.titleSmall,
+                                    modifier = Modifier.weight(1f)
                                 )
-                                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                    modifier = Modifier.padding(start = 8.dp).clearAndSetSemantics {
+                                        contentDescription = if (isEnglish) "Tip ${selectedRecTab + 1} of ${recCards.size}"
+                                            else "Consejo ${selectedRecTab + 1} de ${recCards.size}"
+                                    }
+                                ) {
                                     recCards.indices.forEach { index ->
                                         val isSelected = selectedRecTab == index
                                         Box(
