@@ -1,5 +1,6 @@
 package com.hermes.widgetuv.widget
 
+import com.hermes.widgetuv.data.model.formatUv
 import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
@@ -96,7 +97,7 @@ class UvGlanceWidget2x1 : GlanceAppWidget() {
                     }
 
                     Text(
-                        text = String.format(Locale.US, "%.1f", info.currentUv),
+                        text = formatUv(info.currentUv, isEnglish),
                         style = TextStyle(
                             color = ColorProvider(riskColor),
                             fontSize = 26.sp,
@@ -170,7 +171,7 @@ class UvGlanceWidget2x1 : GlanceAppWidget() {
                                 ) {}
                                 Spacer(modifier = GlanceModifier.height(2.dp))
                                 Text(
-                                    text = String.format(Locale.US, "%.1f", item.uv),
+                                    text = formatUv(item.uv, isEnglish),
                                     style = TextStyle(
                                         color = ColorProvider(Color.White),
                                         fontSize = 9.sp,
@@ -186,7 +187,7 @@ class UvGlanceWidget2x1 : GlanceAppWidget() {
                     // Peak Info
                     val peakLabel = if (isEnglish) "Peak" else "Máx"
                     Text(
-                        text = "$peakLabel ${String.format(Locale.US, "%.1f", info.maxTodayUv)} (${info.maxTime})",
+                        text = "$peakLabel ${formatUv(info.maxTodayUv, isEnglish)} (${info.maxTime})",
                         style = TextStyle(
                             color = ColorProvider(textSecondary),
                             fontSize = 9.sp,

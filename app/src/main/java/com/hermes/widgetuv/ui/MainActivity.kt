@@ -1,5 +1,6 @@
 package com.hermes.widgetuv.ui
 
+import com.hermes.widgetuv.data.model.formatUv
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Bundle
@@ -246,7 +247,7 @@ fun UvMainScreen() {
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Text(
-                                text = String.format(Locale.US, "%.1f", info.currentUv),
+                                text = formatUv(info.currentUv, isEnglish),
                                 fontSize = 48.sp,
                                 fontWeight = FontWeight.ExtraBold,
                                 color = riskColor
@@ -293,9 +294,9 @@ fun UvMainScreen() {
                                 color = MaterialTheme.colorScheme.surfaceVariant
                             ) {
                                 val peakText = if (isEnglish) {
-                                    "${String.format(Locale.US, "%.1f", info.maxTodayUv)} UV at ${info.maxTime}"
+                                    "${formatUv(info.maxTodayUv, isEnglish)} UV at ${info.maxTime}"
                                 } else {
-                                    "${String.format(Locale.US, "%.1f", info.maxTodayUv)} UV a las ${info.maxTime}"
+                                    "${formatUv(info.maxTodayUv, isEnglish)} UV a las ${info.maxTime}"
                                 }
                                 Text(
                                     text = peakText,
@@ -392,7 +393,7 @@ fun UvMainScreen() {
                                     }
                                     Spacer(modifier = Modifier.height(4.dp))
                                     Text(
-                                        text = String.format(Locale.US, "%.1f", item.uv),
+                                        text = formatUv(item.uv, isEnglish),
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 12.sp,
                                         color = itemColor
@@ -634,7 +635,7 @@ fun UvMainScreen() {
                                 Text("📍", fontSize = 16.sp)
                                 Spacer(modifier = Modifier.width(6.dp))
                                 Text(
-                                    text = if (isEnglish) "Force GPS Sync & Refresh" else "Forzar Lectura GPS y Actualizar",
+                                    text = if (isEnglish) "Update location & UV" else "Actualizar ubicación y UV",
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 14.sp,
                                     textAlign = TextAlign.Center
@@ -648,9 +649,9 @@ fun UvMainScreen() {
                     // Subtle GPS schedule hint
                     val dateStr = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(info.lastUpdated))
                     val syncText = if (isEnglish) {
-                        "Synced: $dateStr · Auto-GPS: 7:00 AM / 2:00 PM"
+                        "Updated: $dateStr · Automatic at 7:00 AM and 2:00 PM"
                     } else {
-                        "Sincronizado: $dateStr · Auto-GPS: 7:00 AM / 2:00 PM"
+                        "Actualizado: $dateStr · Automático a las 7:00 y 14:00"
                     }
                     Text(
                         text = syncText,

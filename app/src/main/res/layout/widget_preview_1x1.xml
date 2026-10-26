@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Preview shown in the widget picker (Android 12+): what the widget really looks like. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="match_parent" android:background="@drawable/widget_preview_bg" android:gravity="center" android:orientation="vertical" android:padding="8dp">
+    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="☀️ UV" android:textColor="#94A3B8" android:textSize="11sp" />
+    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="5,2" android:textColor="#FDD835" android:textSize="28sp" android:textStyle="bold" />
+    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:background="@drawable/widget_preview_badge" android:paddingHorizontal="6dp" android:paddingVertical="2dp" android:text="MODERADO" android:textColor="#000000" android:textSize="10sp" android:textStyle="bold" />
+    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Máx 7,1 (14:00)" android:textColor="#94A3B8" android:textSize="10sp" />
+</LinearLayout>

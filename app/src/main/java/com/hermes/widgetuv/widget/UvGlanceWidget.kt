@@ -1,5 +1,6 @@
 package com.hermes.widgetuv.widget
 
+import com.hermes.widgetuv.data.model.formatUv
 import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
@@ -85,7 +86,7 @@ class UvGlanceWidget : GlanceAppWidget() {
 
                 // UV Value (Large Number)
                 Text(
-                    text = String.format(Locale.US, "%.1f", info.currentUv),
+                    text = formatUv(info.currentUv, isEnglish),
                     style = TextStyle(
                         color = ColorProvider(riskColor),
                         fontSize = 28.sp,
@@ -116,7 +117,7 @@ class UvGlanceWidget : GlanceAppWidget() {
                 // Peak UV
                 val maxPrefix = if (isEnglish) "Peak" else "Máx"
                 Text(
-                    text = "$maxPrefix ${String.format(Locale.US, "%.1f", info.maxTodayUv)} (${info.maxTime})",
+                    text = "$maxPrefix ${formatUv(info.maxTodayUv, isEnglish)} (${info.maxTime})",
                     style = TextStyle(
                         color = ColorProvider(textSecondary),
                         fontSize = 9.sp,

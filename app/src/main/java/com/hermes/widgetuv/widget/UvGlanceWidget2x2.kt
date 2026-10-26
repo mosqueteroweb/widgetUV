@@ -1,5 +1,6 @@
 package com.hermes.widgetuv.widget
 
+import com.hermes.widgetuv.data.model.formatUv
 import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
@@ -112,7 +113,7 @@ class UvGlanceWidget2x2 : GlanceAppWidget() {
 
                 // Center Value & Risk Badge
                 Text(
-                    text = String.format(Locale.US, "%.1f", info.currentUv),
+                    text = formatUv(info.currentUv, isEnglish),
                     style = TextStyle(
                         color = ColorProvider(riskColor),
                         fontSize = 34.sp,
@@ -141,7 +142,7 @@ class UvGlanceWidget2x2 : GlanceAppWidget() {
 
                 val peakPrefix = if (isEnglish) "Peak:" else "Pico hoy:"
                 Text(
-                    text = "$peakPrefix ${String.format(Locale.US, "%.1f", info.maxTodayUv)} (${info.maxTime})",
+                    text = "$peakPrefix ${formatUv(info.maxTodayUv, isEnglish)} (${info.maxTime})",
                     style = TextStyle(
                         color = ColorProvider(textSecondary),
                         fontSize = 10.sp,
@@ -192,7 +193,7 @@ class UvGlanceWidget2x2 : GlanceAppWidget() {
                             ) {}
                             Spacer(modifier = GlanceModifier.height(2.dp))
                             Text(
-                                text = String.format(Locale.US, "%.1f", item.uv),
+                                text = formatUv(item.uv, isEnglish),
                                 style = TextStyle(
                                     color = ColorProvider(Color.White),
                                     fontSize = 9.sp,
